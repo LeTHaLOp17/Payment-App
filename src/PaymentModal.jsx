@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import './PaymentModal.css';
 
 const PaymentModal = ({ isOpen, onClose, formData }) => {
-  const UPI_ID = "7292863850@ptsbi"; // Replace with actual UPI ID
+  const UPI_ID = "7292863850@ptsbi";
   const [isOpening, setIsOpening] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  
+  // Detect if user is on mobile device
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   const handlePayment = (paymentApp) => {
     if (isOpening) return;
@@ -14,53 +18,42 @@ const PaymentModal = ({ isOpen, onClose, formData }) => {
     const merchantName = "IBM Training Program";
     const transactionNote = `IBM Training Registration - ${fullName}`;
     
-    // App-specific deep links
-    const paymentUrls = {
-      paytm: `paytmmp://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
-      googlepay: `tez://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
-      phonepe: `phonepe://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
-      upi: `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
-    };
+    if (isMobile) {
+      // Mobile: Open UPI apps directly
+      const paymentUrls = {
+        paytm: `paytmmp://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
+        googlepay: `tez://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
+        phonepe: `phonepe://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
+        upi: `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`
+      };
 
-    const selectedUrl = paymentUrls[paymentApp] || paymentUrls.upi;
-    
-    console.log(`Opening ${paymentApp} with URL:`, selectedUrl);
-    
-    // Use window.location.href directly - this works on all devices
-    window.location.href = selectedUrl;
-    
-    // Close modal after short delay
-    setTimeout(() => {
-      setIsOpening(false);
-      onClose();
-    }, 1000);
+      const selectedUrl = paymentUrls[paymentApp] || paymentUrls.upi;
+      window.location.href = selectedUrl;
+      
+      setTimeout(() => {
+        setIsOpening(false);
+        onClose();
+      }, 1000);
+      
+    } else {
+      // Desktop: Show QR code
+      setTimeout(() => {
+        setIsOpening(false);
+        setShowQR(true);
+      }, 500);
+    }
   };
 
-  const showManualPayment = (appName) => {
+  // Generate QR code URL for UPI payment
+  const generateQRCode = () => {
     const { amount, fullName } = formData;
+    const merchantName = "IBM Training Program";
+    const transactionNote = `IBM Training Registration - ${fullName}`;
     
-    const paymentDetails = `Payment Failed to Auto-Open!
-
-Please open your ${appName || 'UPI'} app manually and enter:
-
-UPI ID: ${UPI_ID}
-Amount: ₹${amount}
-Name: ${fullName}
-Note: IBM Training Registration - ${fullName}
-
-UPI ID will be copied to clipboard!`;
+    const upiString = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
     
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(UPI_ID).then(() => {
-        alert(paymentDetails);
-      }).catch(() => {
-        alert(paymentDetails.replace('\n\nUPI ID will be copied to clipboard!', ''));
-      });
-    } else {
-      alert(paymentDetails.replace('\n\nUPI ID will be copied to clipboard!', ''));
-    }
-    
-    onClose();
+    // Using QR Server API for QR generation
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
   };
 
   const handleBackdropClick = (e) => {
@@ -75,7 +68,7 @@ UPI ID will be copied to clipboard!`;
     <div className="payment-modal-overlay" onClick={handleBackdropClick}>
       <div className="payment-modal">
         <div className="payment-modal-header">
-          <h2>Select Payment App</h2>
+          <h2>Payment</h2>
           <button 
             className="close-button" 
             onClick={onClose}
@@ -86,79 +79,113 @@ UPI ID will be copied to clipboard!`;
         </div>
         
         <div className="payment-modal-body">
-          <div className="payment-info">
-            <p><strong>Amount:</strong> ₹{formData.amount}</p>
-            <p><strong>For:</strong> {formData.fullName}</p>
-            <p><strong>UPI ID:</strong> {UPI_ID}</p>
-          </div>
-          
-          <div className="payment-options">
-            <button 
-              className={`payment-option paytm ${isOpening ? 'opening' : ''}`}
-              onClick={() => handlePayment('paytm')}
-              disabled={isOpening}
-            >
-              <div className="payment-icon paytm-icon">💳</div>
-              <span>Pay with Paytm</span>
-              {isOpening && <div className="opening-indicator">🔄</div>}
-            </button>
-            
-            <button 
-              className={`payment-option googlepay ${isOpening ? 'opening' : ''}`}
-              onClick={() => handlePayment('googlepay')}
-              disabled={isOpening}
-            >
-              <div className="payment-icon googlepay-icon">🌐</div>
-              <span>Pay with Google Pay</span>
-              {isOpening && <div className="opening-indicator">🔄</div>}
-            </button>
-            
-            <button 
-              className={`payment-option phonepe ${isOpening ? 'opening' : ''}`}
-              onClick={() => handlePayment('phonepe')}
-              disabled={isOpening}
-            >
-              <div className="payment-icon phonepe-icon">📱</div>
-              <span>Pay with PhonePe</span>
-              {isOpening && <div className="opening-indicator">🔄</div>}
-            </button>
-            
-            <button 
-              className={`payment-option upi ${isOpening ? 'opening' : ''}`}
-              onClick={() => handlePayment('upi')}
-              disabled={isOpening}
-            >
-              <div className="payment-icon upi-icon">🏦</div>
-              <span>Other UPI App</span>
-              {isOpening && <div className="opening-indicator">🔄</div>}
-            </button>
-          </div>
-          
-          <div className="payment-note">
-            <p>💡 Tap any option to open your UPI app directly with pre-filled details.</p>
-          </div>
-          
-          {isOpening && (
-            <div className="opening-status">
-              <div className="opening-animation">
-                <div className="pulse-ring"></div>
-                <div className="pulse-ring"></div>
-                <div className="pulse-ring"></div>
+          {!showQR ? (
+            <>
+              {/* Payment Info */}
+              <div className="payment-info">
+                <p><strong>Amount:</strong> ₹{formData.amount}</p>
+                <p><strong>UPI ID:</strong> {UPI_ID}</p>
               </div>
-              <p>Opening payment app...</p>
-              <p className="opening-hint">Your app should open in a moment</p>
+              
+              {/* Payment Options */}
+              <div className="payment-options">
+                <button 
+                  className={`pay-button paytm-btn ${isOpening ? 'opening' : ''}`}
+                  onClick={() => handlePayment('paytm')}
+                  disabled={isOpening}
+                >
+                  <div className="app-logo">
+                    <img src="/paytmLogo.jpg" alt="Paytm" className="paytm-logo"/>
+                  </div>
+                  <span>Pay with Paytm</span>
+                  {isOpening && <div className="loading-spinner"></div>}
+                </button>
+                
+                <button 
+                  className={`pay-button gpay-btn ${isOpening ? 'opening' : ''}`}
+                  onClick={() => handlePayment('googlepay')}
+                  disabled={isOpening}
+                >
+                  <div className="app-logo">
+                    <img src="/gpayLogo.png" alt="Google Pay" className="gpay-logo"/>
+                  </div>
+                  <span>Pay with Google Pay</span>
+                  {isOpening && <div className="loading-spinner"></div>}
+                </button>
+                
+                <button 
+                  className={`pay-button phonepe-btn ${isOpening ? 'opening' : ''}`}
+                  onClick={() => handlePayment('phonepe')}
+                  disabled={isOpening}
+                >
+                  <div className="app-logo">
+                    <img src="/phonePay.png" alt="PhonePe" className="phonepe-logo"/>
+                  </div>
+                  <span>Pay with PhonePe</span>
+                  {isOpening && <div className="loading-spinner"></div>}
+                </button>
+                
+                <button 
+                  className={`pay-button upi-btn ${isOpening ? 'opening' : ''}`}
+                  onClick={() => handlePayment('upi')}
+                  disabled={isOpening}
+                >
+                  <div className="app-logo">
+                    <svg viewBox="0 0 24 24" className="upi-logo">
+                      <rect x="3" y="4" width="18" height="16" rx="2" fill="#FF6B35"/>
+                      <path d="M12 8v8m-4-4h8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                  <span>Other UPI App</span>
+                  {isOpening && <div className="loading-spinner"></div>}
+                </button>
+              </div>
+              
+              {/* Instructions */}
+              <div className="payment-instructions">
+                <p>{isMobile ? 'Tap any option to pay' : 'Click any option to generate QR code'}</p>
+              </div>
+            </>
+          ) : (
+            /* QR Code Section for Desktop */
+            <div className="qr-section">
+              <h3>Scan QR Code to Pay</h3>
+              
+              <div className="qr-container">
+                <img 
+                  src={generateQRCode()} 
+                  alt="UPI Payment QR Code"
+                  className="qr-code"
+                />
+              </div>
+              
+              <div className="qr-instructions">
+                <p>Scan this QR code with any UPI app on your phone</p>
+                <div className="payment-details">
+                  <p>Amount: ₹{formData.amount}</p>
+                  <p>UPI ID: {UPI_ID}</p>
+                </div>
+              </div>
+              
+              <div className="qr-actions">
+                <button 
+                  className="pay-button secondary"
+                  onClick={() => setShowQR(false)}
+                >
+                  Back to Payment Options
+                </button>
+                
+                <button 
+                  className="pay-button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(UPI_ID);
+                  }}
+                >
+                  Copy UPI ID
+                </button>
+              </div>
             </div>
           )}
-          
-          <div className="manual-option">
-            <button 
-              className="manual-button"
-              onClick={() => showManualPayment('Manual')}
-              disabled={isOpening}
-            >
-              📋 Copy Payment Details
-            </button>
-          </div>
         </div>
       </div>
     </div>

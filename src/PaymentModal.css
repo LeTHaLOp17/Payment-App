@@ -21,7 +21,7 @@
   max-width: 420px;
   width: 90%;
   max-height: 90vh;
-  overflow: hidden;
+  overflow-y: auto;
   animation: slideUp 0.3s ease-out;
 }
 
@@ -32,6 +32,7 @@
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e5e7eb;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 16px 16px 0 0;
 }
 
 .payment-modal-header h2 {
@@ -71,6 +72,23 @@
   padding: 2rem;
 }
 
+/* Device Info */
+.device-info {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.device-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Payment Info */
 .payment-info {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   padding: 1rem 1.5rem;
@@ -83,6 +101,7 @@
   margin: 0.5rem 0;
   color: #1e40af;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .payment-info p:first-child {
@@ -93,6 +112,7 @@
   margin-bottom: 0;
 }
 
+/* Payment Options */
 .payment-options {
   display: flex;
   flex-direction: column;
@@ -148,7 +168,6 @@
   opacity: 0.7;
 }
 
-/* Opening state styling */
 .payment-option.opening {
   border-color: #10b981;
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
@@ -188,6 +207,38 @@
   box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
+.opening-indicator {
+  position: absolute;
+  right: 1rem;
+  font-size: 1.2rem;
+  animation: spin 1s linear infinite;
+}
+
+/* Manual Option */
+.manual-option {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.manual-button {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manual-button:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+/* Payment Note */
 .payment-note {
   background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
   border: 1px solid #fbbf24;
@@ -203,7 +254,7 @@
   font-weight: 500;
 }
 
-/* Opening status animation */
+/* Opening Status */
 .opening-status {
   text-align: center;
   padding: 1.5rem;
@@ -238,17 +289,16 @@
 }
 
 .opening-status p {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   color: #065f46;
   font-weight: 600;
   font-size: 1rem;
 }
 
-.opening-indicator {
-  position: absolute;
-  right: 1rem;
-  font-size: 1.2rem;
-  animation: spin 1s linear infinite;
+.opening-hint {
+  font-size: 0.85rem;
+  color: #047857;
+  margin: 0;
 }
 
 /* Animations */
@@ -317,5 +367,12 @@
   .opening-animation {
     width: 50px;
     height: 50px;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-appearance: none) {
+  .payment-option {
+    -webkit-tap-highlight-color: transparent;
   }
 }

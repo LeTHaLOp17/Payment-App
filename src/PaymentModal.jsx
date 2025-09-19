@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import './PaymentModal.css';
 
 const PaymentModal = ({ isOpen, onClose, formData }) => {
-  const UPI_ID = "6204223457-2@axl"; // Change this to your UPI ID
+  const UPI_ID = "6204223457-2@axl";
   const [isOpening, setIsOpening] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
   
   const handlePayment = (paymentApp) => {
     if (isOpening) return;
     
     setIsOpening(true);
-    setShowFallback(false);
     
     const { amount, fullName } = formData;
     const merchantName = "IBM Training Program";
     const transactionNote = `IBM Training Registration - ${fullName}`;
     
-    // App-specific deep links with proper encoding
+    // App-specific deep links
     const paymentUrls = {
       paytm: `paytmmp://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
       googlepay: `tez://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`,
@@ -28,86 +26,39 @@ const PaymentModal = ({ isOpen, onClose, formData }) => {
     
     console.log(`Opening ${paymentApp} with URL:`, selectedUrl);
     
-    // Multiple methods to open UPI app
-    const openUpiApp = async () => {
-      let appOpened = false;
-      
-      try {
-        // Method 1: Direct window.location (best for mobile)
-        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-          window.location.href = selectedUrl;
-          appOpened = true;
-        } else {
-          // Method 2: Try window.open first (for desktop)
-          const popup = window.open(selectedUrl, '_blank');
-          
-          // Check if popup was blocked
-          if (popup && !popup.closed) {
-            appOpened = true;
-          } else {
-            // Method 3: Create invisible iframe
-            const iframe = document.createElement('iframe');
-            iframe.src = selectedUrl;
-            iframe.style.display = 'none';
-            iframe.style.width = '1px';
-            iframe.style.height = '1px';
-            document.body.appendChild(iframe);
-            
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-            }, 3000);
-            
-            // Method 4: Create link and click
-            const link = document.createElement('a');
-            link.href = selectedUrl;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            appOpened = true;
-          }
-        }
-      } catch (error) {
-        console.error('Error opening payment app:', error);
-        appOpened = false;
-      }
-      
-      return appOpened;
-    };
-
-    // Execute payment opening
-    openUpiApp().then((success) => {
-      setTimeout(() => {
-        setIsOpening(false);
-        
-        if (success) {
-          // Show fallback options if app might not have opened
-          setTimeout(() => {
-            setShowFallback(true);
-          }, 2000);
-        } else {
-          setShowFallback(true);
-        }
-      }, 1000);
-    });
+    // Use window.location.href directly - this works on all devices
+    window.location.href = selectedUrl;
+    
+    // Close modal after short delay
+    setTimeout(() => {
+      setIsOpening(false);
+      onClose();
+    }, 1000);
   };
 
-  const handleManualPayment = () => {
+  const showManualPayment = (appName) => {
     const { amount, fullName } = formData;
-    const paymentDetails = `
+    
+    const paymentDetails = `Payment Failed to Auto-Open!
+
+Please open your ${appName || 'UPI'} app manually and enter:
+
 UPI ID: ${UPI_ID}
 Amount: ₹${amount}
 Name: ${fullName}
 Note: IBM Training Registration - ${fullName}
-    `;
+
+UPI ID will be copied to clipboard!`;
     
-    // Copy to clipboard
-    navigator.clipboard.writeText(UPI_ID).then(() => {
-      alert(`Payment details:\n${paymentDetails}\n\nUPI ID copied to clipboard!`);
-    }).catch(() => {
-      alert(`Payment details:\n${paymentDetails}`);
-    });
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(UPI_ID).then(() => {
+        alert(paymentDetails);
+      }).catch(() => {
+        alert(paymentDetails.replace('\n\nUPI ID will be copied to clipboard!', ''));
+      });
+    } else {
+      alert(paymentDetails.replace('\n\nUPI ID will be copied to clipboard!', ''));
+    }
     
     onClose();
   };
@@ -141,118 +92,73 @@ Note: IBM Training Registration - ${fullName}
             <p><strong>UPI ID:</strong> {UPI_ID}</p>
           </div>
           
-          {!showFallback ? (
-            <>
-              <div className="payment-options">
-                <button 
-                  className={`payment-option paytm ${isOpening ? 'opening' : ''}`}
-                  onClick={() => handlePayment('paytm')}
-                  disabled={isOpening}
-                >
-                  <div className="payment-icon paytm-icon">💳</div>
-                  <span>Pay with Paytm</span>
-                  {isOpening && <div className="opening-indicator">🔄</div>}
-                </button>
-                
-                <button 
-                  className={`payment-option googlepay ${isOpening ? 'opening' : ''}`}
-                  onClick={() => handlePayment('googlepay')}
-                  disabled={isOpening}
-                >
-                  <div className="payment-icon googlepay-icon">🌐</div>
-                  <span>Pay with Google Pay</span>
-                  {isOpening && <div className="opening-indicator">🔄</div>}
-                </button>
-                
-                <button 
-                  className={`payment-option phonepe ${isOpening ? 'opening' : ''}`}
-                  onClick={() => handlePayment('phonepe')}
-                  disabled={isOpening}
-                >
-                  <div className="payment-icon phonepe-icon">📱</div>
-                  <span>Pay with PhonePe</span>
-                  {isOpening && <div className="opening-indicator">🔄</div>}
-                </button>
-                
-                <button 
-                  className={`payment-option upi ${isOpening ? 'opening' : ''}`}
-                  onClick={() => handlePayment('upi')}
-                  disabled={isOpening}
-                >
-                  <div className="payment-icon upi-icon">🏦</div>
-                  <span>Other UPI App</span>
-                  {isOpening && <div className="opening-indicator">🔄</div>}
-                </button>
+          <div className="payment-options">
+            <button 
+              className={`payment-option paytm ${isOpening ? 'opening' : ''}`}
+              onClick={() => handlePayment('paytm')}
+              disabled={isOpening}
+            >
+              <div className="payment-icon paytm-icon">💳</div>
+              <span>Pay with Paytm</span>
+              {isOpening && <div className="opening-indicator">🔄</div>}
+            </button>
+            
+            <button 
+              className={`payment-option googlepay ${isOpening ? 'opening' : ''}`}
+              onClick={() => handlePayment('googlepay')}
+              disabled={isOpening}
+            >
+              <div className="payment-icon googlepay-icon">🌐</div>
+              <span>Pay with Google Pay</span>
+              {isOpening && <div className="opening-indicator">🔄</div>}
+            </button>
+            
+            <button 
+              className={`payment-option phonepe ${isOpening ? 'opening' : ''}`}
+              onClick={() => handlePayment('phonepe')}
+              disabled={isOpening}
+            >
+              <div className="payment-icon phonepe-icon">📱</div>
+              <span>Pay with PhonePe</span>
+              {isOpening && <div className="opening-indicator">🔄</div>}
+            </button>
+            
+            <button 
+              className={`payment-option upi ${isOpening ? 'opening' : ''}`}
+              onClick={() => handlePayment('upi')}
+              disabled={isOpening}
+            >
+              <div className="payment-icon upi-icon">🏦</div>
+              <span>Other UPI App</span>
+              {isOpening && <div className="opening-indicator">🔄</div>}
+            </button>
+          </div>
+          
+          <div className="payment-note">
+            <p>💡 Tap any option to open your UPI app directly with pre-filled details.</p>
+          </div>
+          
+          {isOpening && (
+            <div className="opening-status">
+              <div className="opening-animation">
+                <div className="pulse-ring"></div>
+                <div className="pulse-ring"></div>
+                <div className="pulse-ring"></div>
               </div>
-              
-              <div className="payment-note">
-                <p>💡 Make sure your preferred UPI app is installed on your device.</p>
-              </div>
-              
-              {isOpening && (
-                <div className="opening-status">
-                  <div className="opening-animation">
-                    <div className="pulse-ring"></div>
-                    <div className="pulse-ring"></div>
-                    <div className="pulse-ring"></div>
-                  </div>
-                  <p>Opening payment app...</p>
-                  <p className="opening-hint">If app doesn't open, try the manual option below</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="fallback-options">
-              <div className="fallback-header">
-                <h3>App didn't open?</h3>
-                <p>No worries! You can still make the payment manually:</p>
-              </div>
-              
-              <div className="manual-payment-info">
-                <div className="qr-placeholder">
-                  <div className="qr-icon">📱</div>
-                  <p>Scan QR code or use UPI ID manually</p>
-                </div>
-                
-                <div className="payment-details">
-                  <div className="detail-row">
-                    <span className="label">UPI ID:</span>
-                    <span className="value">{UPI_ID}</span>
-                    <button 
-                      className="copy-btn"
-                      onClick={() => navigator.clipboard.writeText(UPI_ID)}
-                    >
-                      📋
-                    </button>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Amount:</span>
-                    <span className="value">₹{formData.amount}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Note:</span>
-                    <span className="value">IBM Training - {formData.fullName}</span>
-                  </div>
-                </div>
-                
-                <button 
-                  className="manual-pay-button"
-                  onClick={handleManualPayment}
-                >
-                  Copy Payment Details
-                </button>
-              </div>
-              
-              <div className="back-option">
-                <button 
-                  className="back-button"
-                  onClick={() => setShowFallback(false)}
-                >
-                  ← Try Apps Again
-                </button>
-              </div>
+              <p>Opening payment app...</p>
+              <p className="opening-hint">Your app should open in a moment</p>
             </div>
           )}
+          
+          <div className="manual-option">
+            <button 
+              className="manual-button"
+              onClick={() => showManualPayment('Manual')}
+              disabled={isOpening}
+            >
+              📋 Copy Payment Details
+            </button>
+          </div>
         </div>
       </div>
     </div>

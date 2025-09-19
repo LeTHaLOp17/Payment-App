@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './PaymentModal.css';
 
 const PaymentModal = ({ isOpen, onClose, formData }) => {
-  const UPI_ID = "your-upi-id@bank"; // Replace with actual UPI ID
+  const UPI_ID = "7292863850@ptsbi"; // Replace with actual UPI ID
   const [isOpening, setIsOpening] = useState(false);
   
   const handlePayment = (paymentApp) => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './PaymentModal.css';
 
 const PaymentModal = ({ isOpen, onClose, formData }) => {
-  const UPI_ID = "7292863850@ptsbi";
+  const UPI_ID = "8809945055@kotak811";
   const [isOpening, setIsOpening] = useState(false);
   const [showQR, setShowQR] = useState(false);
   

@@ -106,7 +106,7 @@ function App() {
                   <span>Ibmskillbuidscamp@co.in</span>
                 </div>
                 <div className="contact-item">
-                  <span className="contact-icon">📞</span>
+                  <span className="contact-icon"></span>
                   <span>+91 9663447823</span>
                 </div>
               </div>

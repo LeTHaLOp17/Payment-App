@@ -103,11 +103,11 @@ function App() {
                 <h4>Contact Us:</h4>
                 <div className="contact-item">
                   <span className="contact-icon">📧</span>
-                  <span>support@ibmtraining.com</span>
+                  <span>Ibmskillbuidscamp@co.in</span>
                 </div>
                 <div className="contact-item">
                   <span className="contact-icon">📞</span>
-                  <span>+91 9599197828</span>
+                  <span>+91 9663447823</span>
                 </div>
               </div>
             </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './PaymentModal.css';
+// Import your QR code image
+import qrCodeImage from '/qr-code.jpg'; // Update this path according to your project structure
 
 const PaymentModal = ({ isOpen, onClose, formData }) => {
-  const UPI_ID = "8809945055@kotak811";
+  const UPI_ID = "6207109821@axl";
   const UPI_NAME = "IBM Training Program";
   const [timeLeft, setTimeLeft] = useState(3 * 60); // 3 minutes in seconds
   const [copySuccess, setCopySuccess] = useState(false);
@@ -32,17 +34,6 @@ const PaymentModal = ({ isOpen, onClose, formData }) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  // Generate QR code URL for UPI payment
-  const generateQRCode = () => {
-    const { amount, fullName } = formData;
-    const merchantName = UPI_NAME;
-    const transactionNote = `IBM Training Registration - ${fullName}`;
-    
-    const upiString = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-    
-    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
   };
 
   // Handle copy UPI ID with feedback
@@ -93,7 +84,7 @@ const PaymentModal = ({ isOpen, onClose, formData }) => {
             
             <div className="qr-container">
               <img 
-                src={generateQRCode()} 
+                src={qrCodeImage}
                 alt="UPI Payment QR Code"
                 className={`qr-code ${timeLeft === 0 ? 'qr-expired' : ''}`}
               />
